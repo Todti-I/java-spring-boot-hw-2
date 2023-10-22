@@ -7,6 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import ru.vedeshkin.hw2.exception.UnsupportedCodeException;
 import ru.vedeshkin.hw2.exception.ValidationFailedException;
 import ru.vedeshkin.hw2.model.Request;
 import ru.vedeshkin.hw2.model.Response;
@@ -43,24 +44,25 @@ public class MyController {
                 .build();
 
         try {
+            if (Objects.equals(request.getUid(), "123")) {
+                throw new UnsupportedCodeException("Uid = 123 unsupported");
+            }
             validationService.isValid(bindingResult);
         } catch (ValidationFailedException e) {
             response.setCode("failed");
             response.setErrorCode("ValidationException");
             response.setErrorMessage("Ошибка валидации");
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        } catch (UnsupportedCodeException e) {
+            response.setCode("failed");
+            response.setErrorCode("UnsupportedCodeException");
+            response.setErrorMessage("Не поддерживаемая ошибка");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             response.setCode("failed");
             response.setErrorCode("UnknownException");
             response.setErrorMessage("Произошла непредвиденная ошибка");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        if (Objects.equals(request.getUid(), "123")) {
-            response.setCode("failed");
-            response.setErrorCode("UnsupportedCodeException");
-            response.setErrorMessage("Не поддерживаемая ошибка");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
         return new ResponseEntity<>(response, HttpStatus.OK);
